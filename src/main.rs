@@ -1,4 +1,3 @@
-use simpe_http_server::ThreadPool;
 use std::{
     fs,
     io::{BufReader, prelude::*},
@@ -6,18 +5,21 @@ use std::{
     thread,
     time::Duration,
 };
+use thread_pool::ThreadPool;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
     let pool = ThreadPool::build(4).expect("Failed to create thread pool.");
 
-    for stream in listener.incoming() {
+    for stream in listener.incoming().take(3) {
         let stream = stream.unwrap();
 
         pool.execute(|| {
             handle_connection(stream);
         });
     }
+
+    println!("shutting down.");
 }
 
 fn handle_connection(mut stream: TcpStream) {
